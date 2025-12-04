@@ -143,6 +143,75 @@
     </form>
   </div>
 </main>
+  <script>
+/* ============================================================
+   🔎 VERIFICADOR AUTOMÁTICO DE ERROS DO FIREBASE + FIRESTORE
+   ============================================================ */
+(function () {
+  function criarAviso(texto) {
+    const box = document.createElement("div");
+    box.style.position = "fixed";
+    box.style.bottom = "20px";
+    box.style.left = "20px";
+    box.style.padding = "14px 20px";
+    box.style.background = "#dc2626";
+    box.style.color = "#fff";
+    box.style.fontSize = "14px";
+    box.style.borderRadius = "8px";
+    box.style.boxShadow = "0 4px 10px rgba(0,0,0,.2)";
+    box.style.zIndex = "999999";
+    box.style.maxWidth = "320px";
+    box.style.whiteSpace = "pre-line";
+    box.textContent = texto;
+    document.body.appendChild(box);
+  }
+
+  // 1️⃣ Detecta se está rodando localmente (file://)
+  if (location.protocol === "file:") {
+    criarAviso(
+      "⚠️ O site está sendo aberto diretamente do computador.\n\n" +
+      "Firebase com módulos (type='module') NÃO funciona em file://\n\n" +
+      "➡ Execute usando um servidor:\n- Live Server (VS Code)\n- python -m http.server\n- Ou hospede em um servidor web."
+    );
+    return;
+  }
+
+  // 2️⃣ Verifica internet (Firebase não funciona offline)
+  if (!navigator.onLine) {
+    criarAviso("📡 Sem conexão com a internet. O Firebase não pode iniciar.");
+    return;
+  }
+
+  // 3️⃣ Verifica carregamento do Firebase
+  setTimeout(() => {
+    if (typeof firebase === "undefined") {
+      criarAviso(
+        "❌ Erro: Firebase não carregou.\n\n" +
+        "Possíveis causas:\n" +
+        "- Script do Firebase bloqueado\n" +
+        "- Conexão lenta\n" +
+        "- URL incorreta nos imports"
+      );
+      return;
+    }
+
+    // 4️⃣ Tenta acessar Firestore
+    try {
+      firebase.firestore();
+    } catch (e) {
+      criarAviso(
+        "❌ Firestore não iniciou.\n" +
+        "Erro: " + e.message + "\n\n" +
+        "Possíveis soluções:\n" +
+        "- Verifique a config do Firebase\n" +
+        "- Verifique regras do Firestore\n" +
+        "- Execute em servidor HTTPS"
+      );
+    }
+  }, 800);
+})();
+</script>
+
 
 <footer>
   Feito com ❤️ — Sistema de Impressoras
