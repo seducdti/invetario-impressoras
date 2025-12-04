@@ -6,30 +6,30 @@
 <title>Cadastro de Impressoras</title>
 <link rel="stylesheet" href="styles.css">
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<!-- ================= FIREBASE MODULAR v9+ ================= -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+  import { 
+      getFirestore, collection, addDoc, getDocs, query, where 
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-<script>
-  // =========================
-  // 🔥 Configuração Firebase
-  // =========================
+  // NOVA CONFIGURAÇÃO QUE VOCÊ PEDIU
   const firebaseConfig = {
-    apiKey: "AIzaSyBWMeGoDass7ZZKbsN7ogX7ZKxTTApprtg",
-    authDomain: "inventario-impressoras-2ecbd.firebaseapp.com",
-    projectId: "inventario-impressoras-2ecbd",
-    storageBucket: "inventario-impressoras-2ecbd.firebasestorage.app",
-    messagingSenderId: "993025022167",
-    appId: "1:993025022167:web:94c62eac0cfa96ddc1f892",
-    measurementId: "G-459GNX2RGH"
+    apiKey: "AIzaSyDJowbDn2YYIesgAbXNm_9zmKwkHM3Rf7E",
+    authDomain: "manutencao-pc.firebaseapp.com",
+    projectId: "manutencao-pc",
+    storageBucket: "manutencao-pc.firebasestorage.app",
+    messagingSenderId: "138491581240",
+    appId: "1:138491581240:web:bf74b195dd07d3511227cd",
+    measurementId: "G-DFSJH7HS6C"
   };
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
 
-  // =========================
-  // 🎨 Função de toast (mensagem visual)
-  // =========================
+  // ------------------ TOAST ------------------
   function showMessage(msg, type = "success") {
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
@@ -38,9 +38,7 @@
     setTimeout(() => toast.remove(), 4000);
   }
 
-  // =========================
-  // 🖨️ Função para salvar impressora
-  // =========================
+  // ------------------ SALVAR IMPRESSORA ------------------
   async function salvarImpressora(event) {
     event.preventDefault();
 
@@ -55,18 +53,22 @@
     }
 
     try {
-      // Evita duplicações: mesmo toner + escola
-      const querySnapshot = await db.collection("impressoras")
-        .where("escola", "==", escola)
-        .where("toner", "==", toner)
-        .get();
+      // Verificar duplicidade
+      const q = query(
+        collection(db, "impressoras"),
+        where("escola", "==", escola),
+        where("toner", "==", toner)
+      );
+
+      const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
-        showMessage("❌ Essa escola já possui este modelo de toner cadastrado!", "error");
+        showMessage("❌ Essa escola já possui este toner cadastrado!", "error");
         return;
       }
 
-      await db.collection("impressoras").add({
+      // Salvar Firestore
+      await addDoc(collection(db, "impressoras"), {
         modelo,
         toner,
         escola,
@@ -74,32 +76,25 @@
         dataCadastro: new Date()
       });
 
-      // Exibe mensagem com resumo do cadastro
-      const mensagem = 
-        `✅ Impressora cadastrada com sucesso!\n` +
-        `📄 Modelo: ${modelo}\n` +
-        `🧩 Toner: ${toner}\n` +
-        `🏫 Escola: ${escola}\n` +
-        `🏷️ Propriedade: ${propriedade}`;
-      
-      showMessage(mensagem);
+      showMessage(
+        `✅ Impressora cadastrada!\n📄 Modelo: ${modelo}\n🧩 Toner: ${toner}\n🏫 Escola: ${escola}\n🏷️ Propriedade: ${propriedade}`
+      );
+
       document.getElementById('formCadastro').reset();
+
     } catch (erro) {
       console.error("Erro ao salvar:", erro);
-      showMessage("❌ Ocorreu um erro ao salvar a impressora.", "error");
+      showMessage("❌ Erro ao salvar a impressora.", "error");
     }
   }
 
-  // =========================
-  // ⚙️ Inicialização
-  // =========================
   window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("formCadastro").addEventListener("submit", salvarImpressora);
   });
 </script>
 
+<!-- ================= ESTILOS ================= -->
 <style>
-/* ======= Toast messages ======= */
 .toast {
   position: fixed;
   bottom: 20px;
@@ -113,24 +108,23 @@
   z-index: 9999;
   animation: fadeInOut 4s ease-in-out forwards;
   white-space: pre-line;
-  line-height: 1.5;
   max-width: 300px;
 }
 .toast.error { background: #ef4444; }
+
 @keyframes fadeInOut {
-  0% {opacity: 0; transform: translateY(20px);}
-  10%, 90% {opacity: 1; transform: translateY(0);}
-  100% {opacity: 0; transform: translateY(20px);}
+  0% { opacity: 0; transform: translateY(20px); }
+  10%, 90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(20px); }
 }
 </style>
 
 </head>
+
 <body>
 <header>
   <div class="container" style="display:flex;align-items:center;justify-content:space-between">
-    <div>
-      <h1 style="font-size:20px;margin:0">Cadastro de Impressora</h1>
-    </div>
+    <h1 style="font-size:20px;margin:0">Cadastro de Impressora</h1>
     <nav>
       <a href="index.html">Home</a>
       <a href="cadastro.html">Cadastro</a>
@@ -145,39 +139,37 @@
       <div class="row">
         <div style="flex:1">
           <label for="modelo">Modelo da impressora</label>
-          <input type="text" id="modelo" name="modelo" required placeholder="Ex: HP LaserJet Pro M15">
+          <input type="text" id="modelo" required placeholder="Ex: HP LaserJet Pro M15">
         </div>
         <div style="flex:1">
           <label for="toner">Modelo de toner</label>
-          <input type="text" id="toner" name="toner" required placeholder="Ex: CF244A">
+          <input type="text" id="toner" required placeholder="Ex: CF244A">
         </div>
       </div>
 
       <div class="row">
         <div style="flex:1">
           <label for="escola">Escola / Setor</label>
-          <input type="text" id="escola" name="escola" required placeholder="Ex: Escola Municipal Centro">
+          <input type="text" id="escola" required placeholder="Ex: Escola Municipal Centro">
         </div>
         <div style="width:220px">
           <label for="propriedade">É alugada ou própria?</label>
-          <select id="propriedade" name="propriedade">
+          <select id="propriedade">
             <option value="Propria">Própria</option>
             <option value="Alugada">Alugada</option>
           </select>
         </div>
       </div>
 
-      <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
-        <button type="submit">Salvar impressora</button>
-        <button type="reset" class="small" style="background:#efefef;color:#111">Limpar</button>
-        <div class="muted" style="margin-left:8px">*Campos obrigatórios</div>
-      </div>
+      <button type="submit">Salvar impressora</button>
+      <button type="reset" class="small" style="background:#ddd;color:#111">Limpar</button>
     </form>
   </div>
 </main>
 
 <footer>
-  Feito com ❤️ — Abra este arquivo localmente ou hospede em um servidor estático.
+  Feito com ❤️ — Sistema de Impressoras
 </footer>
+
 </body>
 </html>
