@@ -3,105 +3,184 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cadastro de Impressoras</title>
+<title>Impressoras Cadastradas</title>
 <link rel="stylesheet" href="styles.css">
 
-<!-- ================= FIREBASE MODULAR v9+ ================= -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-  import { 
-      getFirestore, collection, addDoc, getDocs, query, where 
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
-  // NOVA CONFIGURAÇÃO QUE VOCÊ PEDIU
+<script>
+  // =============================
+  // 🔥 Configuração Firebase
+  // =============================
   const firebaseConfig = {
-    apiKey: "AIzaSyDJowbDn2YYIesgAbXNm_9zmKwkHM3Rf7E",
-    authDomain: "manutencao-pc.firebaseapp.com",
-    projectId: "manutencao-pc",
-    storageBucket: "manutencao-pc.firebasestorage.app",
-    messagingSenderId: "138491581240",
-    appId: "1:138491581240:web:bf74b195dd07d3511227cd",
-    measurementId: "G-DFSJH7HS6C"
+    apiKey: "AIzaSyBWMeGoDass7ZZKbsN7ogX7ZKxTTApprtg",
+    authDomain: "inventario-impressoras-2ecbd.firebaseapp.com",
+    projectId: "inventario-impressoras-2ecbd",
+    storageBucket: "inventario-impressoras-2ecbd.firebasestorage.app",
+    messagingSenderId: "993025022167",
+    appId: "1:993025022167:web:94c62eac0cfa96ddc1f892",
+    measurementId: "G-459GNX2RGH"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db = getFirestore(app);
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-  // ------------------ TOAST ------------------
-  function showMessage(msg, type = "success") {
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.innerHTML = msg.replace(/\n/g, "<br>");
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
+  let impressoras = [];
+
+  // =============================
+  // 🖨️ Carregar e renderizar tabela
+  // =============================
+  async function carregarImpressoras() {
+    const tabela = document.querySelector("#tabela tbody");
+    const contador = document.getElementById("contadorImpressoras");
+    tabela.innerHTML = "<tr><td colspan='5'>Carregando...</td></tr>";
+
+    try {
+      const snapshot = await db.collection("impressoras").get();
+      impressoras = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderTabela(impressoras);
+      contador.textContent = `Total de impressoras: ${impressoras.length}`;
+    } catch (erro) {
+      console.error("Erro ao carregar:", erro);
+      tabela.innerHTML = "<tr><td colspan='5'>Erro ao carregar dados.</td></tr>";
+    }
   }
 
-  // ------------------ SALVAR IMPRESSORA ------------------
-  async function salvarImpressora(event) {
-    event.preventDefault();
+  function renderTabela(lista) {
+    const tabela = document.querySelector("#tabela tbody");
+    const contador = document.getElementById("contadorImpressoras");
 
-    const modelo = document.getElementById('modelo').value.trim();
-    const toner = document.getElementById('toner').value.trim();
-    const escola = document.getElementById('escola').value.trim();
-    const propriedade = document.getElementById('propriedade').value;
-
-    if (!modelo || !toner || !escola) {
-      showMessage("⚠️ Preencha todos os campos obrigatórios!", "error");
+    if (lista.length === 0) {
+      tabela.innerHTML = "<tr><td colspan='5'>Nenhuma impressora cadastrada.</td></tr>";
+      contador.textContent = "Total de impressoras: 0";
       return;
     }
 
-    try {
-      // Verificar duplicidade
-      const q = query(
-        collection(db, "impressoras"),
-        where("escola", "==", escola),
-        where("toner", "==", toner)
-      );
+    tabela.innerHTML = "";
+    lista.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td contenteditable="true" data-field="modelo">${item.modelo || ""}</td>
+        <td contenteditable="true" data-field="toner">${item.toner || ""}</td>
+        <td contenteditable="true" data-field="escola">${item.escola || ""}</td>
+        <td>
+          <select data-field="propriedade">
+            <option value="Propria" ${item.propriedade === "Propria" ? "selected" : ""}>Própria</option>
+            <option value="Alugada" ${item.propriedade === "Alugada" ? "selected" : ""}>Alugada</option>
+          </select>
+        </td>
+        <td><button class="small excluirBtn" data-id="${item.id}">Excluir</button></td>
+      `;
+      tabela.appendChild(tr);
+    });
 
-      const querySnapshot = await getDocs(q);
+    contador.textContent = `Total de impressoras: ${lista.length}`;
 
-      if (!querySnapshot.empty) {
-        showMessage("❌ Essa escola já possui este toner cadastrado!", "error");
-        return;
-      }
-
-      // Salvar Firestore
-      await addDoc(collection(db, "impressoras"), {
-        modelo,
-        toner,
-        escola,
-        propriedade,
-        dataCadastro: new Date()
+    // Botões de exclusão
+    document.querySelectorAll(".excluirBtn").forEach(btn => {
+      btn.addEventListener("click", async e => {
+        const id = e.target.dataset.id;
+        if (confirm("Tem certeza que deseja excluir esta impressora?")) {
+          await db.collection("impressoras").doc(id).delete();
+          carregarImpressoras();
+        }
       });
-
-      showMessage(
-        `✅ Impressora cadastrada!\n📄 Modelo: ${modelo}\n🧩 Toner: ${toner}\n🏫 Escola: ${escola}\n🏷️ Propriedade: ${propriedade}`
-      );
-
-      document.getElementById('formCadastro').reset();
-
-    } catch (erro) {
-      console.error("Erro ao salvar:", erro);
-      showMessage("❌ Erro ao salvar a impressora.", "error");
-    }
+    });
   }
 
+  // =============================
+  // 💾 Salvar alterações
+  // =============================
+  async function salvarAlteracoes() {
+    const linhas = document.querySelectorAll("#tabela tbody tr");
+    for (const [i, tr] of linhas.entries()) {
+      const id = impressoras[i]?.id;
+      if (!id) continue;
+
+      const modelo = tr.querySelector('[data-field="modelo"]').innerText.trim();
+      const toner = tr.querySelector('[data-field="toner"]').innerText.trim();
+      const escola = tr.querySelector('[data-field="escola"]').innerText.trim();
+      const propriedade = tr.querySelector('[data-field="propriedade"]').value;
+
+      await db.collection("impressoras").doc(id).update({
+        modelo, toner, escola, propriedade
+      });
+    }
+    alert("✅ Alterações salvas com sucesso!");
+    carregarImpressoras();
+  }
+
+  // =============================
+  // 🔍 Filtro e busca
+  // =============================
+  function filtrar() {
+    const termo = document.getElementById("search").value.toLowerCase();
+    const filtro = document.getElementById("filterPropriedade").value;
+
+    const filtradas = impressoras.filter(item => {
+      const combinaTexto =
+        item.modelo?.toLowerCase().includes(termo) ||
+        item.toner?.toLowerCase().includes(termo) ||
+        item.escola?.toLowerCase().includes(termo);
+      const combinaPropriedade = filtro ? item.propriedade === filtro : true;
+      return combinaTexto && combinaPropriedade;
+    });
+
+    renderTabela(filtradas);
+  }
+
+  // =============================
+  // 🖨️ Impressão (com contador)
+  // =============================
+  function imprimirTabela() {
+    const total = document.getElementById("contadorImpressoras").textContent;
+    const printContent = document.querySelector(".card").innerHTML;
+    const win = window.open('', '', 'width=900,height=700');
+    win.document.write(`
+      <html>
+        <head>
+          <title>Relatório de Impressoras</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h2 { margin-top: 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+            th { background: #f2f2f2; }
+            p { font-weight: bold; margin-top: 8px; }
+          </style>
+        </head>
+        <body>
+          <h2>Relatório de Impressoras Cadastradas</h2>
+          ${printContent}
+          <p>${total}</p>
+        </body>
+      </html>
+    `);
+    win.document.close();
+    win.print();
+  }
+
+  // =============================
+  // ⚙️ Inicialização
+  // =============================
   window.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("formCadastro").addEventListener("submit", salvarImpressora);
+    carregarImpressoras();
+    document.getElementById("saveBtn").addEventListener("click", salvarAlteracoes);
+    document.getElementById("search").addEventListener("input", filtrar);
+    document.getElementById("filterPropriedade").addEventListener("change", filtrar);
+    document.getElementById("printBtn").addEventListener("click", imprimirTabela);
   });
 </script>
 
-<!-- ================= ESTILOS ================= -->
-
-
 </head>
-
 <body>
 <header>
   <div class="container" style="display:flex;align-items:center;justify-content:space-between">
-    <h1 style="font-size:20px;margin:0">Cadastro de Impressora</h1>
+    <div>
+      <h1 style="font-size:20px;margin:0">Impressoras Cadastradas</h1>
+    </div>
     <nav>
       <a href="index.html">Home</a>
       <a href="cadastro.html">Cadastro</a>
@@ -112,110 +191,44 @@
 
 <main class="container">
   <div class="card">
-    <form id="formCadastro">
-      <div class="row">
-        <div style="flex:1">
-          <label for="modelo">Modelo da impressora</label>
-          <input type="text" id="modelo" required placeholder="Ex: HP LaserJet Pro M15">
-        </div>
-        <div style="flex:1">
-          <label for="toner">Modelo de toner</label>
-          <input type="text" id="toner" required placeholder="Ex: CF244A">
-        </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div>
+        <h2>Lista de Impressoras</h2>
+        <div class="muted">Edite diretamente na tabela e clique em "Salvar alterações".</div>
       </div>
-
-      <div class="row">
-        <div style="flex:1">
-          <label for="escola">Escola / Setor</label>
-          <input type="text" id="escola" required placeholder="Ex: Escola Municipal Centro">
-        </div>
-        <div style="width:220px">
-          <label for="propriedade">É alugada ou própria?</label>
-          <select id="propriedade">
-            <option value="Propria">Própria</option>
-            <option value="Alugada">Alugada</option>
-          </select>
-        </div>
+      <div class="controls">
+        <input id="search" class="search" placeholder="Pesquisar por modelo, toner ou escola">
+        <select id="filterPropriedade" class="small">
+          <option value="">Todas</option>
+          <option value="Propria">Próprias</option>
+          <option value="Alugada">Alugadas</option>
+        </select>
+        <button id="saveBtn" class="small">Salvar alterações</button>
+        <button id="printBtn" class="small">Imprimir tabela</button>
       </div>
+    </div>
 
-      <button type="submit">Salvar impressora</button>
-      <button type="reset" class="small" style="background:#ddd;color:#111">Limpar</button>
-    </form>
+    <p id="contadorImpressoras" style="font-weight:600;margin-bottom:10px;color:#0b63d6"></p>
+
+    <div style="overflow:auto">
+      <table id="tabela">
+        <thead>
+          <tr>
+            <th>Modelo</th>
+            <th>Toner</th>
+            <th>Escola/Setor</th>
+            <th>Propriedade</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 </main>
-  <script>
-/* ============================================================
-   🔎 VERIFICADOR AUTOMÁTICO DE ERROS DO FIREBASE + FIRESTORE
-   ============================================================ */
-(function () {
-  function criarAviso(texto) {
-    const box = document.createElement("div");
-    box.style.position = "fixed";
-    box.style.bottom = "20px";
-    box.style.left = "20px";
-    box.style.padding = "14px 20px";
-    box.style.background = "#dc2626";
-    box.style.color = "#fff";
-    box.style.fontSize = "14px";
-    box.style.borderRadius = "8px";
-    box.style.boxShadow = "0 4px 10px rgba(0,0,0,.2)";
-    box.style.zIndex = "999999";
-    box.style.maxWidth = "320px";
-    box.style.whiteSpace = "pre-line";
-    box.textContent = texto;
-    document.body.appendChild(box);
-  }
-
-  // 1️⃣ Detecta se está rodando localmente (file://)
-  if (location.protocol === "file:") {
-    criarAviso(
-      "⚠️ O site está sendo aberto diretamente do computador.\n\n" +
-      "Firebase com módulos (type='module') NÃO funciona em file://\n\n" +
-      "➡ Execute usando um servidor:\n- Live Server (VS Code)\n- python -m http.server\n- Ou hospede em um servidor web."
-    );
-    return;
-  }
-
-  // 2️⃣ Verifica internet (Firebase não funciona offline)
-  if (!navigator.onLine) {
-    criarAviso("📡 Sem conexão com a internet. O Firebase não pode iniciar.");
-    return;
-  }
-
-  // 3️⃣ Verifica carregamento do Firebase
-  setTimeout(() => {
-    if (typeof firebase === "undefined") {
-      criarAviso(
-        "❌ Erro: Firebase não carregou.\n\n" +
-        "Possíveis causas:\n" +
-        "- Script do Firebase bloqueado\n" +
-        "- Conexão lenta\n" +
-        "- URL incorreta nos imports"
-      );
-      return;
-    }
-
-    // 4️⃣ Tenta acessar Firestore
-    try {
-      firebase.firestore();
-    } catch (e) {
-      criarAviso(
-        "❌ Firestore não iniciou.\n" +
-        "Erro: " + e.message + "\n\n" +
-        "Possíveis soluções:\n" +
-        "- Verifique a config do Firebase\n" +
-        "- Verifique regras do Firestore\n" +
-        "- Execute em servidor HTTPS"
-      );
-    }
-  }, 800);
-})();
-</script>
-
 
 <footer>
-  Feito com ❤️ — Sistema de Impressoras
+  Feito com ❤️ — Abra este arquivo localmente ou hospede em um servidor estático.
 </footer>
-
 </body>
 </html>
