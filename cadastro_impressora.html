@@ -1,33 +1,79 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8" />
     <title>Cadastro de Impressoras</title>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Importações do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Configuração fornecida por você
+        const firebaseConfig = {
+            apiKey: "AIzaSyAM_O0w1wWILJh0SEQMjavN9L2gRSRnbgA",
+            authDomain: "inventario-impressoras-d9d58.firebaseapp.com",
+            projectId: "inventario-impressoras-d9d58",
+            storageBucket: "inventario-impressoras-d9d58.firebasestorage.app",
+            messagingSenderId: "71103195224",
+            appId: "1:71103195224:web:769d4e39ab8a76a042822d",
+            measurementId: "G-KYXTLDZ9ER"
+        };
+
+        // Inicialização do Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Função de cadastro
+        async function salvarImpressora(event) {
+            event.preventDefault();
+
+            const modelo = document.getElementById("modelo").value;
+            const toner = document.getElementById("toner").value;
+            const escola = document.getElementById("escola").value;
+            const setor = document.getElementById("setor").value;
+            const propriedade = document.getElementById("propriedade").value;
+
+            await addDoc(collection(db, "impressoras"), {
+                modelo,
+                toner,
+                escola,
+                setor,
+                propriedade
+            });
+
+            alert("Impressora cadastrada com sucesso!");
+        }
+
+        window.salvarImpressora = salvarImpressora;
+    </script>
 </head>
 <body>
     <h1>Cadastro de Impressoras</h1>
-    <form>
+
+    <form onsubmit="salvarImpressora(event)">
         <label>Modelo da Impressora:</label><br>
-        <input type="text"><br><br>
+        <input id="modelo" type="text"><br><br>
 
         <label>Toner:</label><br>
-        <input type="text"><br><br>
+        <input id="toner" type="text"><br><br>
 
         <label>Escola:</label><br>
-        <input type="text"><br><br>
+        <input id="escola" type="text"><br><br>
 
         <label>Setor:</label><br>
-        <input type="text"><br><br>
+        <input id="setor" type="text"><br><br>
 
         <label>Propriedade:</label><br>
-        <select>
+        <select id="propriedade">
             <option>Própria</option>
             <option>Alugada</option>
         </select><br><br>
 
         <button type="submit">Salvar</button>
     </form>
+
     <br>
     <a href="index.html">Voltar</a>
 </body>
