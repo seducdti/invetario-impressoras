@@ -41,17 +41,36 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const lista = document.getElementById("lista");  // <-- FALTAVA ISSO
+
 async function carregar(){
     const snap = await getDocs(collection(db,"impressoras"));
+
+    if (snap.empty) {
+        lista.innerHTML = "<p>Nenhuma impressora cadastrada.</p>";
+        return;
+    }
+
     let html = "<ul>";
-    snap.forEach(doc=>{
+    snap.forEach(doc => {
         const d = doc.data();
-        html += `<li><strong>${d.modelo}</strong> — Toner: ${d.toner} — Escola: ${d.escola || "Não informado"} — Setor: ${d.setor || "Não informado"}</li>`;
+        html += `
+            <li>
+                <strong>${d.modelo}</strong> — 
+                Toner: ${d.toner} — 
+                Escola: ${d.escola || "Não informado"} — 
+                Setor: ${d.setor || "Não informado"} — 
+                Propriedade: ${d.propriedade}
+            </li>
+        `;
     });
     html += "</ul>";
+    
     lista.innerHTML = html;
 }
+
 carregar();
 </script>
+
 </body>
 </html>
