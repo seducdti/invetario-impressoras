@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <title>Cadastro Impressora</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+    <h1>Cadastro de Impressoras</h1>
+    <nav>
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link active" href="cadastro_impressora.html">Cadastro Impressora</a>
+        <a class="nav-link" href="manutencao.html">Cadastro Manutenção</a>
+        <a class="nav-link" href="consulta_impressoras.html">Consultar Impressoras</a>
+        <a class="nav-link" href="consulta_manutencoes.html">Consultar Manutenções</a>
+    </nav>
+</header>
+
+<main class="container">
+<section class="card">
+<h2>Cadastro de Impressoras</h2>
+
+<form id="formImpressora" onsubmit="salvar(event)">
+    <div>
+        <label>Modelo</label>
+        <input id="modelo" type="text" required>
+    </div>
+
+    <div>
+        <label>Toner</label>
+        <input id="toner" type="text" required>
+    </div>
+
+    <div>
+        <label>Escola (opcional)</label>
+        <input id="escola" type="text">
+    </div>
+
+    <div>
+        <label>Setor (opcional)</label>
+        <input id="setor" type="text">
+    </div>
+
+    <div class="full">
+        <label>Propriedade</label>
+        <select id="propriedade" required>
+            <option value="">Selecione</option>
+            <option>Própria</option>
+            <option>Alugada</option>
+        </select>
+    </div>
+
+    <div class="actions">
+        <button>Salvar</button>
+    </div>
+</form>
+</section>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAM_O0w1wWILJh0SEQMjavN9L2gRSRnbgA",
+  authDomain: "inventario-impressoras-d9d58.firebaseapp.com",
+  projectId: "inventario-impressoras-d9d58",
+  storageBucket: "inventario-impressoras-d9d58.firebasestorage.app",
+  messagingSenderId: "71103195224",
+  appId: "1:71103195224:web:769d4e39ab8a76a042822d",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function salvar(e){
+    e.preventDefault();
+    await addDoc(collection(db,"impressoras"),{
+        modelo: modelo.value,
+        toner: toner.value,
+        escola: escola.value || "",
+        setor: setor.value || "",
+        propriedade: propriedade.value,
+        criado: new Date().toISOString()
+    });
+    alert("Salvo!");
+    formImpressora.reset();
+}
+</script>
+</body>
+</html>
