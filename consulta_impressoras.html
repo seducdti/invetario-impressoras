@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -34,6 +33,9 @@ const firebaseConfig = {
   authDomain: "inventario-impressoras-d9d58.firebaseapp.com",
   projectId: "inventario-impressoras-d9d58",
   storageBucket: "inventario-impressoras-d9d58.firebasestorage.app",
+  messagingSenderId: "71103195224",
+  appId: "1:71103195224:web:769d4e39ab8a76a042822d",
+  measurementId: "G-KYXTLDZ9ER"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -44,7 +46,7 @@ async function carregar(){
     let html = "<ul>";
     snap.forEach(doc=>{
         const d = doc.data();
-        html += `<li><strong>${d.modelo}</strong> — Toner: ${d.toner} — Escola: ${d.escola} — Setor: ${d.setor}</li>`;
+        html += `<li><strong>${d.modelo}</strong> — Toner: ${d.toner} — Escola: ${d.escola || "Não informado"} — Setor: ${d.setor || "Não informado"}</li>`;
     });
     html += "</ul>";
     lista.innerHTML = html;
