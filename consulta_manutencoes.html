@@ -25,50 +25,56 @@
 </main>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAM_O0w1wWILJh0SEQMjavN9L2gRSRnbgA",
-  authDomain: "inventario-impressoras-d9d58.firebaseapp.com",
-  projectId: "inventario-impressoras-d9d58",
-  storageBucket: "inventario-impressoras-d9d58.firebasestorage.app",
-  messagingSenderId: "71103195224",
-  appId: "1:71103195224:web:769d4e39ab8a76a042822d"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+import { db } from "./firebase.js";
+import { collection, getDocs, deleteDoc, doc, updateDoc } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const lista = document.getElementById("lista");
 
 async function carregar(){
-    const snap = await getDocs(collection(db,"manutencoes"));
+  const snap = await getDocs(collection(db,"manutencoes"));
 
-    if (snap.empty) {
-        lista.innerHTML = "<p>Nenhuma manutenção cadastrada.</p>";
-        return;
-    }
+  if (snap.empty) {
+    lista.innerHTML = "<p>Nenhuma manutenção cadastrada.</p>";
+    return;
+  }
 
-    let html = "<ul>";
+  let html = "<ul>";
 
-    snap.forEach(doc=>{
-        const d = doc.data();
-        html += `
-          <li>
-            <strong>${d.impressora}</strong><br>
-            Problema: ${d.problema}<br>
-            Escola: ${d.escola || "Não informado"}<br>
-            Setor: ${d.setor || "Não informado"}<br>
-            Entrada: ${d.entrada}<br>
-            Saída: ${d.saida || "Não informada"}
-          </li><hr>
-        `;
-    });
+  snap.forEach(docc => {
+    const d = docc.data();
+    html += `
+      <li>
+        <strong>${d.impressora}</strong><br>
+        Problema: ${d.problema}<br>
+        Entrada: ${d.entrada} | Saída: ${d.saida || "-"}<br>
 
-    html += "</ul>";
-    lista.innerHTML = html;
+        <button onclick="editar('${docc.id}','${d.problema}')">✏️ Editar</button>
+        <button onclick="excluir('${docc.id}')">🗑️ Excluir</button>
+      </li><hr>
+    `;
+  });
+
+  html += "</ul>";
+  lista.innerHTML = html;
 }
+
+window.excluir = async (id) => {
+  if (!confirm("Excluir manutenção?")) return;
+  await deleteDoc(doc(db,"manutencoes",id));
+  carregar();
+};
+
+window.editar = async (id, problemaAtual) => {
+  const novoProblema = prompt("Novo problema:", problemaAtual);
+  if (!novoProblema) return;
+
+  await updateDoc(doc(db,"manutencoes",id), {
+    problema: novoProblema
+  });
+
+  carregar();
+};
 
 carregar();
 </script>
