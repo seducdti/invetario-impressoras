@@ -92,3 +92,13 @@ button{padding:10px 14px;border-radius:10px;border:0;background:var(--accent);co
   background: #dc2626;
   color: white;
 }
+
+.campo-pesquisa {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
