@@ -14,7 +14,5 @@ const firebaseConfig = {
   appId: "1:71103195224:web:769d4e39ab8a76a042822d",
 };
 
-// ✅ evita duplicação
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-
 export const db = getFirestore(app);
