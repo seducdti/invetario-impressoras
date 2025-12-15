@@ -34,25 +34,45 @@ const firebaseConfig = {
   projectId: "inventario-impressoras-d9d58",
   storageBucket: "inventario-impressoras-d9d58.firebasestorage.app",
   messagingSenderId: "71103195224",
-  appId: "1:71103195224:web:769d4e39ab8a76a042822d",
-  measurementId: "G-KYXTLDZ9ER"
+  appId: "1:71103195224:web:769d4e39ab8a76a042822d"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const lista = document.getElementById("lista");
+
 async function carregar(){
     const snap = await getDocs(collection(db,"manutencoes"));
+
+    if (snap.empty) {
+        lista.innerHTML = "<p>Nenhuma manutenção cadastrada.</p>";
+        return;
+    }
+
     let html = "<ul>";
+
     snap.forEach(doc=>{
         const d = doc.data();
-        html += `<li><strong>${d.impressora}</strong> — Problema: ${d.problema} — Escola: ${d.escola || "Não informado"} — Setor: ${d.setor || "Não informado"} — Entrada: ${d.entrada} — Saída: ${d.saida || "Não informada"}</li>`;
+        html += `
+          <li>
+            <strong>${d.impressora}</strong><br>
+            Problema: ${d.problema}<br>
+            Escola: ${d.escola || "Não informado"}<br>
+            Setor: ${d.setor || "Não informado"}<br>
+            Entrada: ${d.entrada}<br>
+            Saída: ${d.saida || "Não informada"}
+          </li><hr>
+        `;
     });
+
     html += "</ul>";
     lista.innerHTML = html;
 }
+
 carregar();
 </script>
+
 
 </body>
 </html>
