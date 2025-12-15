@@ -51,3 +51,44 @@ button{padding:10px 14px;border-radius:10px;border:0;background:var(--accent);co
 @media (max-width:700px){
     form{grid-template-columns:1fr}
 }
+
+.manutencao-card {
+  background: #f9fafb;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 15px;
+}
+
+.manutencao-card h3 {
+  margin-top: 0;
+  color: #1f2937;
+}
+
+.manutencao-card p {
+  margin: 6px 0;
+}
+
+.acoes {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+.acoes button {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.acoes button:first-child {
+  background: #2563eb;
+  color: white;
+}
+
+.acoes button:last-child {
+  background: #dc2626;
+  color: white;
+}
