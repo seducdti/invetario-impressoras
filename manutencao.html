@@ -66,33 +66,12 @@
 </main>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "./firebase.js";
+import { addDoc, collection } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAM_O0w1wWILJh0SEQMjavN9L2gRSRnbgA",
-  authDomain: "inventario-impressoras-d9d58.firebaseapp.com",
-  projectId: "inventario-impressoras-d9d58",
-  storageBucket: "inventario-impressoras-d9d58.firebasestorage.app",
-  messagingSenderId: "71103195224",
-  appId: "1:71103195224:web:769d4e39ab8a76a042822d",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// ELEMENTOS
 const form = document.getElementById("formManutencao");
 
-const impressora = document.getElementById("impressora");
-const escola = document.getElementById("escola");
-const setor = document.getElementById("setor");
-const valor = document.getElementById("valor");
-const problema = document.getElementById("problema");
-const entrada = document.getElementById("entrada");
-const saida = document.getElementById("saida");
-
-// SUBMIT
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -107,7 +86,7 @@ form.addEventListener("submit", async (e) => {
     criado: new Date().toISOString()
   });
 
-  alert("Manutenção cadastrada com sucesso!");
+  alert("Manutenção cadastrada!");
   form.reset();
 });
 </script>
