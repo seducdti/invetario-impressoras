@@ -20,16 +20,43 @@
 <main class="container">
 <section class="card">
 <h2>Lista de Impressoras</h2>
+ <input 
+  type="text" 
+  id="pesquisa" 
+  placeholder="Pesquisar por modelo, escola, setor ou toner..."
+  class="campo-pesquisa"
+/>
+
 <div id="lista"></div>
 </section>
 </main>
 
 <script type="module">
-import { db } from "./firebase.js";
-import { collection, getDocs, deleteDoc, doc, updateDoc } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  deleteDoc, 
+  doc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAM_O0w1wWILJh0SEQMjavN9L2gRSRnbgA",
+  authDomain: "inventario-impressoras-d9d58.firebaseapp.com",
+  projectId: "inventario-impressoras-d9d58",
+  storageBucket: "inventario-impressoras-d9d58.firebasestorage.app",
+  messagingSenderId: "71103195224",
+  appId: "1:71103195224:web:769d4e39ab8a76a042822d",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const lista = document.getElementById("lista");
+const pesquisa = document.getElementById("pesquisa");
+
+let impressoras = [];
 
 async function carregar(){
   const snap = await getDocs(collection(db,"impressoras"));
@@ -39,48 +66,68 @@ async function carregar(){
     return;
   }
 
-  let html = "<ul>";
+  impressoras = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderizar(impressoras);
+}
 
-  snap.forEach(docc => {
-    const d = docc.data();
+function renderizar(dados){
+  let html = "";
+
+  dados.forEach(d => {
     html += `
-      <li>
-        <strong>${d.modelo}</strong> — Toner: ${d.toner}<br>
-        Escola: ${d.escola || "-"} | Setor: ${d.setor || "-"} | ${d.propriedade}<br>
+      <div class="manutencao-card">
+        <h3>${d.modelo}</h3>
 
-        <button onclick="editar('${docc.id}','${d.modelo}','${d.toner}','${d.escola}','${d.setor}','${d.propriedade}')">✏️ Editar</button>
-        <button onclick="excluir('${docc.id}')">🗑️ Excluir</button>
-      </li><hr>
+        <p><strong>Toner:</strong> ${d.toner}</p>
+
+        <p>
+          <strong>Escola:</strong> ${d.escola || "Não informado"}<br>
+          <strong>Setor:</strong> ${d.setor || "Não informado"}
+        </p>
+
+        <p><strong>Propriedade:</strong> ${d.propriedade}</p>
+
+        <div class="acoes">
+          <button onclick="editar('${d.id}')">✏️ Editar</button>
+          <button onclick="excluir('${d.id}')">🗑 Excluir</button>
+        </div>
+      </div>
     `;
   });
 
-  html += "</ul>";
   lista.innerHTML = html;
 }
 
+pesquisa.addEventListener("input", () => {
+  const termo = pesquisa.value.toLowerCase();
+
+  const filtrado = impressoras.filter(d =>
+    d.modelo.toLowerCase().includes(termo) ||
+    d.toner.toLowerCase().includes(termo) ||
+    (d.escola || "").toLowerCase().includes(termo) ||
+    (d.setor || "").toLowerCase().includes(termo)
+  );
+
+  renderizar(filtrado);
+});
+
+// ======================
+// AÇÕES
+// ======================
+
 window.excluir = async (id) => {
-  if (!confirm("Excluir impressora?")) return;
+  if (!confirm("Deseja excluir esta impressora?")) return;
   await deleteDoc(doc(db,"impressoras",id));
   carregar();
 };
 
-window.editar = async (id, modelo, toner, escola, setor, propriedade) => {
-  const novoModelo = prompt("Modelo:", modelo);
-  if (!novoModelo) return;
-
-  await updateDoc(doc(db,"impressoras",id), {
-    modelo: novoModelo,
-    toner,
-    escola,
-    setor,
-    propriedade
-  });
-
-  carregar();
+window.editar = (id) => {
+  alert("Edição será implementada em modal (próximo passo).");
 };
 
 carregar();
 </script>
+
 
 </body>
 </html>
