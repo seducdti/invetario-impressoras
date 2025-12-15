@@ -20,6 +20,10 @@
 <main class="container">
 <section class="card">
 <h2>Lista de Manutenções</h2>
+<div id="totalManutencao" class="total-box">
+  Total gasto em manutenções: <strong>R$ 0,00</strong>
+</div>
+
 <div id="lista"></div>
 </section>
 </main>
@@ -36,13 +40,19 @@ async function carregar(){
 
     if (snap.empty) {
         lista.innerHTML = "<p>Nenhuma manutenção cadastrada.</p>";
+        document.getElementById("totalManutencao").innerHTML =
+          "Total gasto em manutenções: <strong>R$ 0,00</strong>";
         return;
     }
 
     let html = "";
+    let total = 0;
 
     snap.forEach(doc => {
         const d = doc.data();
+
+        const valorNum = Number(d.valor) || 0;
+        total += valorNum;
 
         html += `
         <div class="manutencao-card">
@@ -51,7 +61,7 @@ async function carregar(){
             <p><strong>Problema:</strong> ${d.problema}</p>
 
             <p>
-              <strong>Escola:</strong> ${d.escola || "Não informado"} <br>
+              <strong>Escola:</strong> ${d.escola || "Não informado"}<br>
               <strong>Setor:</strong> ${d.setor || "Não informado"}
             </p>
 
@@ -62,7 +72,7 @@ async function carregar(){
 
             <p>
               <strong>Valor do conserto:</strong> 
-              ${d.valor ? `R$ ${Number(d.valor).toFixed(2)}` : "Não informado"}
+              ${valorNum ? `R$ ${valorNum.toFixed(2)}` : "Não informado"}
             </p>
 
             <div class="acoes">
@@ -74,7 +84,11 @@ async function carregar(){
     });
 
     lista.innerHTML = html;
+
+    document.getElementById("totalManutencao").innerHTML =
+      `Total gasto em manutenções: <strong>R$ ${total.toFixed(2)}</strong>`;
 }
+
 
 window.excluir = async (id) => {
   if (!confirm("Excluir manutenção?")) return;
