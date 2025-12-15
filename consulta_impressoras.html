@@ -20,6 +20,7 @@
 <main class="container">
 <section class="card">
 <h2>Lista de Impressoras</h2>
+    <button onclick="gerarPDF()">📄 Gerar Relatório PDF</button>
  <input 
   type="text" 
   id="pesquisa" 
@@ -31,102 +32,123 @@
 </section>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-  getFirestore, 
-  collection, 
-  getDocs, 
-  deleteDoc, 
-  doc 
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  deleteDoc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAM_O0w1wWILJh0SEQMjavN9L2gRSRnbgA",
   authDomain: "inventario-impressoras-d9d58.firebaseapp.com",
   projectId: "inventario-impressoras-d9d58",
-  storageBucket: "inventario-impressoras-d9d58.firebasestorage.app",
-  messagingSenderId: "71103195224",
-  appId: "1:71103195224:web:769d4e39ab8a76a042822d",
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const lista = document.getElementById("lista");
-const pesquisa = document.getElementById("pesquisa");
 
-let impressoras = [];
-
-async function carregar(){
-  const snap = await getDocs(collection(db,"impressoras"));
+async function carregar() {
+  const snap = await getDocs(collection(db, "impressoras"));
 
   if (snap.empty) {
     lista.innerHTML = "<p>Nenhuma impressora cadastrada.</p>";
     return;
   }
 
-  impressoras = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  renderizar(impressoras);
-}
-
-function renderizar(dados){
   let html = "";
 
-  dados.forEach(d => {
+  snap.forEach(docSnap => {
+    const d = docSnap.data();
+
     html += `
-      <div class="manutencao-card">
-        <h3>${d.modelo}</h3>
+    <div class="manutencao-card">
+      <h3>${d.modelo}</h3>
+      <p><strong>Toner:</strong> ${d.toner}</p>
+      <p><strong>Escola:</strong> ${d.escola || "-"}</p>
+      <p><strong>Setor:</strong> ${d.setor || "-"}</p>
+      <p><strong>Propriedade:</strong> ${d.propriedade}</p>
 
-        <p><strong>Toner:</strong> ${d.toner}</p>
-
-        <p>
-          <strong>Escola:</strong> ${d.escola || "Não informado"}<br>
-          <strong>Setor:</strong> ${d.setor || "Não informado"}
-        </p>
-
-        <p><strong>Propriedade:</strong> ${d.propriedade}</p>
-
-        <div class="acoes">
-          <button onclick="editar('${d.id}')">✏️ Editar</button>
-          <button onclick="excluir('${d.id}')">🗑 Excluir</button>
-        </div>
+      <div class="acoes">
+        <button onclick="editar('${docSnap.id}')">✏️ Editar</button>
+        <button onclick="excluir('${docSnap.id}')">🗑 Excluir</button>
       </div>
+    </div>
     `;
   });
 
   lista.innerHTML = html;
 }
 
-pesquisa.addEventListener("input", () => {
-  const termo = pesquisa.value.toLowerCase();
-
-  const filtrado = impressoras.filter(d =>
-    d.modelo.toLowerCase().includes(termo) ||
-    d.toner.toLowerCase().includes(termo) ||
-    (d.escola || "").toLowerCase().includes(termo) ||
-    (d.setor || "").toLowerCase().includes(termo)
-  );
-
-  renderizar(filtrado);
-});
-
-// ======================
-// AÇÕES
-// ======================
-
 window.excluir = async (id) => {
-  if (!confirm("Deseja excluir esta impressora?")) return;
-  await deleteDoc(doc(db,"impressoras",id));
+  if (!confirm("Excluir esta impressora?")) return;
+  await deleteDoc(doc(db, "impressoras", id));
   carregar();
 };
+    window.gerarPDF = async () => {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
 
-window.editar = (id) => {
-  alert("Edição será implementada em modal (próximo passo).");
+  const snap = await getDocs(collection(db, "impressoras"));
+
+  const dados = [];
+
+  snap.forEach(doc => {
+    const d = doc.data();
+    dados.push([
+      d.modelo,
+      d.toner,
+      d.escola || "-",
+      d.setor || "-",
+      d.propriedade
+    ]);
+  });
+
+  pdf.text("Relatório de Impressoras", 14, 15);
+
+  pdf.autoTable({
+    head: [["Modelo", "Toner", "Escola", "Setor", "Propriedade"]],
+    body: dados,
+    startY: 20
+  });
+
+  pdf.save("relatorio-impressoras.pdf");
+};
+
+
+window.editar = async (id) => {
+  const novoModelo = prompt("Modelo:");
+  if (!novoModelo) return;
+
+  const novoToner = prompt("Toner:");
+  const novaEscola = prompt("Escola:");
+  const novoSetor = prompt("Setor:");
+  const novaPropriedade = prompt("Propriedade (Própria / Alugada):");
+
+  await updateDoc(doc(db, "impressoras", id), {
+    modelo: novoModelo,
+    toner: novoToner || "",
+    escola: novaEscola || "",
+    setor: novoSetor || "",
+    propriedade: novaPropriedade || ""
+  });
+
+  alert("Impressora atualizada!");
+  carregar();
 };
 
 carregar();
 </script>
+
 
 
 </body>
