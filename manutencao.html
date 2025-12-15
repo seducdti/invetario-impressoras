@@ -81,21 +81,36 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-async function salvar(e){
-    e.preventDefault();
-    await addDoc(collection(db,"manutencoes"),{
-        impressora: impressora.value,
-        escola: escola.value || "",
-        setor: setor.value || "",
-        problema: problema.value,
-        valor: valor.value || "",
-        entrada: entrada.value,
-        saida: saida.value || "",
-        criado: new Date().toISOString()
-    });
-    alert("Salvo!");
-    formManutencao.reset();
-}
+// ELEMENTOS
+const form = document.getElementById("formManutencao");
+
+const impressora = document.getElementById("impressora");
+const escola = document.getElementById("escola");
+const setor = document.getElementById("setor");
+const valor = document.getElementById("valor");
+const problema = document.getElementById("problema");
+const entrada = document.getElementById("entrada");
+const saida = document.getElementById("saida");
+
+// SUBMIT
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  await addDoc(collection(db, "manutencoes"), {
+    impressora: impressora.value,
+    escola: escola.value || "",
+    setor: setor.value || "",
+    problema: problema.value,
+    valor: valor.value ? Number(valor.value) : 0,
+    entrada: entrada.value,
+    saida: saida.value || "",
+    criado: new Date().toISOString()
+  });
+
+  alert("Manutenção cadastrada com sucesso!");
+  form.reset();
+});
 </script>
+
 </body>
 </html>
