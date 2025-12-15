@@ -25,49 +25,59 @@
 </main>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "./firebase.js";
+import { collection, getDocs, deleteDoc, doc, updateDoc } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAM_O0w1wWILJh0SEQMjavN9L2gRSRnbgA",
-  authDomain: "inventario-impressoras-d9d58.firebaseapp.com",
-  projectId: "inventario-impressoras-d9d58",
-  storageBucket: "inventario-impressoras-d9d58.firebasestorage.app",
-  messagingSenderId: "71103195224",
-  appId: "1:71103195224:web:769d4e39ab8a76a042822d",
-  measurementId: "G-KYXTLDZ9ER"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const lista = document.getElementById("lista");  // <-- FALTAVA ISSO
+const lista = document.getElementById("lista");
 
 async function carregar(){
-    const snap = await getDocs(collection(db,"impressoras"));
+  const snap = await getDocs(collection(db,"impressoras"));
 
-    if (snap.empty) {
-        lista.innerHTML = "<p>Nenhuma impressora cadastrada.</p>";
-        return;
-    }
+  if (snap.empty) {
+    lista.innerHTML = "<p>Nenhuma impressora cadastrada.</p>";
+    return;
+  }
 
-    let html = "<ul>";
-    snap.forEach(doc => {
-        const d = doc.data();
-        html += `
-            <li>
-                <strong>${d.modelo}</strong> — 
-                Toner: ${d.toner} — 
-                Escola: ${d.escola || "Não informado"} — 
-                Setor: ${d.setor || "Não informado"} — 
-                Propriedade: ${d.propriedade}
-            </li>
-        `;
-    });
-    html += "</ul>";
-    
-    lista.innerHTML = html;
+  let html = "<ul>";
+
+  snap.forEach(docc => {
+    const d = docc.data();
+    html += `
+      <li>
+        <strong>${d.modelo}</strong> — Toner: ${d.toner}<br>
+        Escola: ${d.escola || "-"} | Setor: ${d.setor || "-"} | ${d.propriedade}<br>
+
+        <button onclick="editar('${docc.id}','${d.modelo}','${d.toner}','${d.escola}','${d.setor}','${d.propriedade}')">✏️ Editar</button>
+        <button onclick="excluir('${docc.id}')">🗑️ Excluir</button>
+      </li><hr>
+    `;
+  });
+
+  html += "</ul>";
+  lista.innerHTML = html;
 }
+
+window.excluir = async (id) => {
+  if (!confirm("Excluir impressora?")) return;
+  await deleteDoc(doc(db,"impressoras",id));
+  carregar();
+};
+
+window.editar = async (id, modelo, toner, escola, setor, propriedade) => {
+  const novoModelo = prompt("Modelo:", modelo);
+  if (!novoModelo) return;
+
+  await updateDoc(doc(db,"impressoras",id), {
+    modelo: novoModelo,
+    toner,
+    escola,
+    setor,
+    propriedade
+  });
+
+  carregar();
+};
 
 carregar();
 </script>
