@@ -32,31 +32,48 @@ from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 const lista = document.getElementById("lista");
 
 async function carregar(){
-  const snap = await getDocs(collection(db,"manutencoes"));
+    const snap = await getDocs(collection(db,"manutencoes"));
 
-  if (snap.empty) {
-    lista.innerHTML = "<p>Nenhuma manutenção cadastrada.</p>";
-    return;
-  }
+    if (snap.empty) {
+        lista.innerHTML = "<p>Nenhuma manutenção cadastrada.</p>";
+        return;
+    }
 
-  let html = "<ul>";
+    let html = "";
 
-  snap.forEach(docc => {
-    const d = docc.data();
-    html += `
-      <li>
-        <strong>${d.impressora}</strong><br>
-        Problema: ${d.problema}<br>
-        Entrada: ${d.entrada} | Saída: ${d.saida || "-"}<br>
+    snap.forEach(doc => {
+        const d = doc.data();
 
-        <button onclick="editar('${docc.id}','${d.problema}')">✏️ Editar</button>
-        <button onclick="excluir('${docc.id}')">🗑️ Excluir</button>
-      </li><hr>
-    `;
-  });
+        html += `
+        <div class="manutencao-card">
+            <h3>${d.impressora}</h3>
 
-  html += "</ul>";
-  lista.innerHTML = html;
+            <p><strong>Problema:</strong> ${d.problema}</p>
+
+            <p>
+              <strong>Escola:</strong> ${d.escola || "Não informado"} <br>
+              <strong>Setor:</strong> ${d.setor || "Não informado"}
+            </p>
+
+            <p>
+              <strong>Entrada:</strong> ${d.entrada}<br>
+              <strong>Saída:</strong> ${d.saida || "—"}
+            </p>
+
+            <p>
+              <strong>Valor do conserto:</strong> 
+              ${d.valor ? `R$ ${Number(d.valor).toFixed(2)}` : "Não informado"}
+            </p>
+
+            <div class="acoes">
+                <button onclick="editar('${doc.id}')">✏️ Editar</button>
+                <button onclick="excluir('${doc.id}')">🗑 Excluir</button>
+            </div>
+        </div>
+        `;
+    });
+
+    lista.innerHTML = html;
 }
 
 window.excluir = async (id) => {
