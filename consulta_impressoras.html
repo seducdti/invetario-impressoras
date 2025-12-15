@@ -27,6 +27,12 @@
   placeholder="Pesquisar por modelo, escola, setor ou toner..."
   class="campo-pesquisa"
 />
+<input
+  type="text"
+  id="pesquisa"
+  placeholder="Pesquisar por modelo, escola, setor ou toner..."
+  class="campo-pesquisa"
+/>
 
 <div id="lista"></div>
 </section>
@@ -141,6 +147,18 @@ window.editar = async (id) => {
     setor: novoSetor || "",
     propriedade: novaPropriedade || ""
   });
+    const campoPesquisa = document.getElementById("pesquisa");
+
+campoPesquisa.addEventListener("input", () => {
+  const termo = campoPesquisa.value.toLowerCase();
+  const cards = document.querySelectorAll(".manutencao-card");
+
+  cards.forEach(card => {
+    const texto = card.innerText.toLowerCase();
+    card.style.display = texto.includes(termo) ? "block" : "none";
+  });
+});
+
 
   alert("Impressora atualizada!");
   carregar();
